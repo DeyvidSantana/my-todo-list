@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MyTODOList.Data\MyTODOList.Data.csproj" />
+    <ProjectReference Include="..\MyTODOList.IRepository\MyTODOList.Repository.csproj" />
+    <ProjectReference Include="..\MyTODOList.RepositoryImpl\MyTODOList.RepositoryImpl.csproj" />
+    <ProjectReference Include="..\MyTODOList.ServicesImpl\MyTODOList.ServicesImpl.csproj" />
+    <ProjectReference Include="..\MyTODOList.Services\MyTODOList.Services.csproj" />
+  </ItemGroup>
+
+
+</Project>

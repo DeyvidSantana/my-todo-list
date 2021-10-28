@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MyTODOList.Infra\MyTODOList.Infra.csproj" />
+    <ProjectReference Include="..\MyTODOList.IRepository\MyTODOList.Repository.csproj" />
+    <ProjectReference Include="..\MyTODOList.Services\MyTODOList.Services.csproj" />
+  </ItemGroup>
+
+</Project>
