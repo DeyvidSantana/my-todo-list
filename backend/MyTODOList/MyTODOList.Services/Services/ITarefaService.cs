@@ -10,5 +10,6 @@ namespace MyTODOList.Services.Services
         void Excluir(int id);
         IList<Tarefa> ConsultarTodos();
         Tarefa ObterPorId(int id);
+        void Finalizar(int[] ids);
     }
 }

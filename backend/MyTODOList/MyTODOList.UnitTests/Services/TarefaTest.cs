@@ -117,7 +117,7 @@ namespace MyTODOList.UnitTests.Services
             return new Faker<TarefaDTO>()
                 .RuleFor(t => t.Id, t => id)
                 .RuleFor(t => t.Descricao, f => !string.IsNullOrEmpty(descricao) ? descricao : f.Lorem.Text())
-                .RuleFor(t => t.Finalizado, f => f.PickRandomParam(finalizado))
+                .RuleFor(t => t.Finalizada, f => f.PickRandomParam(finalizado))
                 .Generate();
         }
 

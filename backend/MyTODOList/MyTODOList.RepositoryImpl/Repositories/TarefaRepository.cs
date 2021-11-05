@@ -17,6 +17,11 @@ namespace MyTODOList.RepositoryImpl.Repositories
             return _dataContext.Tarefas.ToArray();
         }
 
+        public IList<Tarefa> ConsultarPorIds(int[] ids)
+        {
+            return _dataContext.Tarefas.Where(t => ids.Contains(t.Id)).ToArray();
+        }
+
         public Tarefa ObterPorId(int id)
         {
             return _dataContext.Tarefas.FirstOrDefault(t => t.Id == id);

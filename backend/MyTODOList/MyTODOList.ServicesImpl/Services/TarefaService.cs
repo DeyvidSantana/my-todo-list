@@ -23,7 +23,7 @@ namespace MyTODOList.ServicesImpl.Services
                 var novaTarefa = new Tarefa
                 {
                     Descricao = tarefaDto.Descricao,
-                    Finalizada = tarefaDto.Finalizado
+                    Finalizada = tarefaDto.Finalizada
                 };
 
                 _tarefaRepository.Add(novaTarefa);
@@ -35,8 +35,21 @@ namespace MyTODOList.ServicesImpl.Services
                 ValidarExistenciaTarefa(tarefa);
 
                 tarefa.Descricao = tarefaDto.Descricao;
-                tarefa.Finalizada = tarefaDto.Finalizado;
+                tarefa.Finalizada = tarefaDto.Finalizada;
 
+                _tarefaRepository.Update(tarefa);
+            }
+
+            _tarefaRepository.SaveChanges();
+        }
+
+        public void Finalizar(int[] ids)
+        {
+            var tarefas = _tarefaRepository.ConsultarPorIds(ids);
+
+            foreach (var tarefa in tarefas)
+            {
+                tarefa.Finalizada = true;
                 _tarefaRepository.Update(tarefa);
             }
 
@@ -73,6 +86,6 @@ namespace MyTODOList.ServicesImpl.Services
             {
                 throw new NotFoundException("Tarefa não encontrada!");
             }
-        }
+        }        
     }
 }

@@ -4,6 +4,6 @@
     {
         public int? Id { get; set; }
         public string Descricao { get; set; }
-        public bool Finalizado { get; set; }
+        public bool Finalizada { get; set; }
     }
 }
