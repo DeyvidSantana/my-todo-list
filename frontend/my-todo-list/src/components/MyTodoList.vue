@@ -34,7 +34,8 @@
             <tr v-for="(tarefa, index) in tarefas" :key="index">
               <td>
                 <v-checkbox
-                  v-model="tarefasSelecionadas" :value="tarefa.id"
+                  v-model="tarefasSelecionadas"
+                  :value="tarefa.id"
                 ></v-checkbox>
               </td>
               <td v-if="tarefa.finalizada" class="green lighten-4">
@@ -43,7 +44,7 @@
               <td v-else>{{ tarefa.descricao }}</td>
               <td>
                 <v-row>
-                  <v-dialog width="500">
+                  <v-dialog width="500" v-model="fecharModal">
                     <template v-slot:activator="{ on, attrs }">
                       <v-col cols="4" sm="6" md="3" v-bind="attrs" v-on="on">
                         <v-btn block depressed small> Editar </v-btn>
@@ -72,7 +73,7 @@
                         <v-btn
                           color="primary"
                           text
-                          @click="editarTarefa(tarefa), (dialog = false)"
+                          @click="editarTarefa(tarefa), fecharModal = false"
                         >
                           Salvar
                         </v-btn>
@@ -112,82 +113,86 @@
 
       <br />
 
-      <v-btn class="mr-4" @click="selecionarTodasTarefas()"> Selecionar Todos </v-btn>
-      <v-btn @click="finalizarTarefasSelecionados()"> Finalizar Selecionados </v-btn>
+      <v-btn class="mr-4" @click="selecionarTodasTarefas()">
+        Selecionar Todos
+      </v-btn>
+      <v-btn @click="finalizarTarefasSelecionados()">
+        Finalizar Selecionados
+      </v-btn>
     </form>
   </v-container>
 </template>
 
-<script>
-import { Tarefa } from "@/models/Tarefa";
+<script lang="ts">
+import Vue from 'vue';
+import Component from 'vue-class-component';
 
-export default {
-  name: "Home",
+import Tarefa from '@/models/Tarefa';
 
-  data: () => ({
-    descricaoTarefa: "",
-    descricaoAlteradaTarefa: "",
-    tarefas: [],
-    tarefasSelecionadas: [],
-  }),
+@Component
+export default class MyTodoList extends Vue {
 
-  created() {
+  descricaoTarefa = '';
+  descricaoAlteradaTarefa = '';
+  fecharModal = false;
+  tarefas: Tarefa[] = [];
+  tarefasSelecionadas: number[] = [];
+
+  mounted(){
     this.consultarTarefas();
-  },
+  }
 
-  methods: {
-    consultarTarefas() {
-      this.$http
-        .get("http://localhost:12086/tarefa")
-        .then((res) => res.data)
-        .then((tarefas) => {
-          this.tarefas = tarefas;
-        });
-    },
+  consultarTarefas() {
+    this.$http
+      .get("http://localhost:12086/tarefa")
+      .then((res) => res.data)
+      .then((tarefas: Tarefa[]) => {
+        this.tarefas = tarefas;
+      });
+  }
 
-    adicionarTarefa() {
-      let tarefa = new Tarefa(this.descricaoTarefa, false);
+  adicionarTarefa() {
+    let tarefa = new Tarefa(this.descricaoTarefa, false);
 
-      this.$http
-        .post("http://localhost:12086/tarefa", tarefa)
-        .then((res) => res.data)
-        .then(() => {
-          this.consultarTarefas();
-        });
-    },
-
-    editarTarefa(tarefa) {
-      tarefa.descricao = this.descricaoAlteradaTarefa;
-
-      this.$http
-        .post("http://localhost:12086/tarefa", tarefa)
-        .then((res) => res.data)
-        .then(() => {
-          this.consultarTarefas();
-          this.descricaoAlteradaTarefa = "";
-        });
-    },
-
-    finalizarTarefas(ids) {
-      this.$http.put("http://localhost:12086/tarefa", ids).then(() => {
+    this.$http
+      .post("http://localhost:12086/tarefa", tarefa)
+      .then((res) => res.data)
+      .then(() => {
         this.consultarTarefas();
       });
-    },
+  }
 
-    excluirTarefa(id) {
-      this.$http.delete(`http://localhost:12086/tarefa?id=${id}`).then(() => {
+  editarTarefa(tarefa: Tarefa) {
+    tarefa.Descricao = this.descricaoAlteradaTarefa;
+
+    this.$http
+      .post("http://localhost:12086/tarefa", tarefa)
+      .then((res) => res.data)
+      .then(() => {
         this.consultarTarefas();
+        this.descricaoAlteradaTarefa = "";
       });
-    },
+  }
 
-    selecionarTodasTarefas(){
-      this.tarefasSelecionadas = this.tarefas.map(t => t.id);
-    },
+  finalizarTarefas(ids: number[]) {
+    this.$http.put("http://localhost:12086/tarefa", ids).then(() => {
+      this.consultarTarefas();
+    });
+  }
 
-    finalizarTarefasSelecionados(){
-      this.finalizarTarefas(this.tarefasSelecionadas);
-      this.tarefasSelecionadas = [];
-    }
-  },
-};
+  excluirTarefa(id: number) {
+    this.$http.delete(`http://localhost:12086/tarefa?id=${id}`).then(() => {
+      this.consultarTarefas();
+    });
+  }
+
+  selecionarTodasTarefas(){
+    this.tarefasSelecionadas = this.tarefas.map(t => t.id as number);
+  }
+
+  finalizarTarefasSelecionados(){
+    this.finalizarTarefas(this.tarefasSelecionadas);
+    this.tarefasSelecionadas = [];
+  }
+}
 </script>

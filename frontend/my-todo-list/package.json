@@ -13,6 +13,7 @@
     "axios": "^0.24.0",
     "vue": "^2.6.11",
     "vue-axios": "^3.3.7",
+    "vue-class-component": "^7.2.6",
     "vue-resource": "^1.5.3",
     "vue-router": "^3.2.0",
     "vuetify": "^2.4.0",
