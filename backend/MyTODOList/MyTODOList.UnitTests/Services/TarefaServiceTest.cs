@@ -1,7 +1,7 @@
 ﻿using Bogus;
 using FluentAssertions;
-using MyTODOList.Entities.Entities;
 using MyTODOList.Entities.Request;
+using MyTODOList.Entities.Entities;
 using MyTODOList.Infra.Exceptions;
 using MyTODOList.Repository.Repositories;
 using MyTODOList.Services.Services;
@@ -9,27 +9,30 @@ using MyTODOList.ServicesImpl.Services;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
+using System.Collections.Generic;
 
 namespace MyTODOList.UnitTests.Services
 {
-    public class TarefaTest
+    public class TarefaServiceTest
     {
         private readonly ITarefaRepository _tarefaRepository;
 
+        private readonly IValidacaoTarefaService _validacaoTarefaService;
         private readonly ITarefaService _tarefaService;
 
-        public TarefaTest()
+        public TarefaServiceTest()
         {
             _tarefaRepository = Substitute.For<ITarefaRepository>();
 
-            _tarefaService = new TarefaService(_tarefaRepository, new ValidacaoTarefaService());
+            _validacaoTarefaService = Substitute.For<IValidacaoTarefaService>();
+            _tarefaService = new TarefaService(_tarefaRepository, _validacaoTarefaService);
         }
 
         [Fact]
         public void Salvar_TarefaNova_SalvarComSucesso()
         {
             // Arrange
-            var tarefaDTO = CriarTarefaRequest(true);
+            TarefaRequest tarefaDTO = CriarTarefaRequest(true);
 
             _tarefaRepository.Add(Arg.Any<Tarefa>());
 
@@ -45,9 +48,9 @@ namespace MyTODOList.UnitTests.Services
         public void Salvar_TarefaModificadaExistente_SalvarComSucesso()
         {
             // Arrange
-            var tarefaDTO = CriarTarefaRequest(false, "Modificado", 1);
-
-            var tarefa = CriarTarefa(false);
+            var idTarefa = 1;
+            TarefaRequest tarefaDTO = CriarTarefaRequest(false, "Modificado", idTarefa);
+            Tarefa tarefa = CriarTarefa(idTarefa, false);
 
             _tarefaRepository.ObterPorId(Arg.Any<int>()).Returns(tarefa);
             _tarefaRepository.Update(Arg.Any<Tarefa>());
@@ -67,7 +70,7 @@ namespace MyTODOList.UnitTests.Services
         public void Salvar_TarefaModificadaInexistente_LancarExcecao()
         {
             // Arrange
-            var tarefaDTO = CriarTarefaRequest(false, id: 1);
+            TarefaRequest tarefaDTO = CriarTarefaRequest(false, id: 1);
 
             _tarefaRepository.ObterPorId(Arg.Any<int>()).Throws(new NotFoundException());
 
@@ -80,7 +83,7 @@ namespace MyTODOList.UnitTests.Services
         {
             // Arrange
             var idTarefa = 1;
-            var tarefa = CriarTarefa(true);
+            Tarefa tarefa = CriarTarefa(idTarefa, true);
 
             _tarefaRepository.ObterPorId(Arg.Any<int>()).Returns(tarefa);
 
@@ -89,6 +92,27 @@ namespace MyTODOList.UnitTests.Services
 
             // Assert
             _tarefaRepository.Received().Delete(Arg.Any<Tarefa>());
+            _tarefaRepository.Received().SaveChanges();
+        }
+
+        [Fact]
+        public void Finalizar_TarefasParaFinalizar_OperacaoComSucesso()
+        {
+            // Arrange
+            int[] ids = new int[] { 1, 2 };
+            var tarefas = new List<Tarefa>
+            {
+                CriarTarefa(1, true),
+                CriarTarefa(2, true)
+            };
+
+            _tarefaRepository.ConsultarPorIds(ids).Returns(tarefas);
+
+            // Act            
+            _tarefaService.Finalizar(ids);
+
+            // Arrange
+            _tarefaRepository.Received().Update(Arg.Any<Tarefa>());
             _tarefaRepository.Received().SaveChanges();
         }
 
@@ -106,7 +130,9 @@ namespace MyTODOList.UnitTests.Services
         public void ObterPorId_TarefaInexistente_LancarExcecao()
         {
             // Arrange
-            _tarefaRepository.ObterPorId(Arg.Any<int>()).Throws(new NotFoundException());
+            _validacaoTarefaService
+                .When(v => v.ValidarExistenciaTarefa(Arg.Any<Tarefa>()))
+                .Do(v => { throw new NotFoundException(); });
 
             // Act & Assert
             Assert.Throws<NotFoundException>(() => _tarefaService.ObterPorId(1));
@@ -121,9 +147,10 @@ namespace MyTODOList.UnitTests.Services
                 .Generate();
         }
 
-        private Tarefa CriarTarefa(bool finalizado)
+        private Tarefa CriarTarefa(int id, bool finalizado)
         {
             return new Faker<Tarefa>()
+                .RuleFor(t => t.Id, t => id)
                 .RuleFor(t => t.Descricao, f => f.Lorem.Text())
                 .RuleFor(t => t.Finalizada, f => f.PickRandomParam(finalizado))
                 .Generate();

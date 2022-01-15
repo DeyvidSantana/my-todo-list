@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MyTODOList.Entities.DTOs;
+using MyTODOList.Entities.Request;
 using MyTODOList.Infra.Exceptions;
 using MyTODOList.Services.Services;
 
@@ -17,7 +18,7 @@ namespace MyTODOList.WebAPI.Controllers
         }
 
         [HttpPost]
-        public IActionResult Salvar(TarefaDTO tarefaDto)
+        public IActionResult Salvar(TarefaRequest tarefaDto)
         {
             try
             {

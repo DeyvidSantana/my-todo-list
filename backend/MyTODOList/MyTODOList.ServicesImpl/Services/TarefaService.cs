@@ -1,6 +1,5 @@
-﻿using MyTODOList.Entities.DTOs;
-using MyTODOList.Entities.Entities;
-using MyTODOList.Infra.Exceptions;
+﻿using MyTODOList.Entities.Entities;
+using MyTODOList.Entities.Request;
 using MyTODOList.Repository.Repositories;
 using MyTODOList.Services.Services;
 using System.Collections.Generic;
@@ -10,32 +9,35 @@ namespace MyTODOList.ServicesImpl.Services
     public class TarefaService : Service, ITarefaService
     {
         private readonly ITarefaRepository _tarefaRepository;
+        private readonly IValidacaoTarefaService _validacaoTarefaService;
 
-        public TarefaService(ITarefaRepository tarefaRepository)
+        public TarefaService(ITarefaRepository tarefaRepository,
+            IValidacaoTarefaService validacaoTarefaService)
         {
             _tarefaRepository = tarefaRepository;
+            _validacaoTarefaService = validacaoTarefaService;
         }
 
-        public void Salvar(TarefaDTO tarefaDto)
+        public void Salvar(TarefaRequest request)
         {
-            if(!tarefaDto.Id.HasValue)
+            if(!request.Id.HasValue)
             {
                 var novaTarefa = new Tarefa
                 {
-                    Descricao = tarefaDto.Descricao,
-                    Finalizada = tarefaDto.Finalizada
+                    Descricao = request.Descricao,
+                    Finalizada = request.Finalizada
                 };
 
                 _tarefaRepository.Add(novaTarefa);
             } 
             else
             {
-                var tarefa = _tarefaRepository.ObterPorId(tarefaDto.Id.Value);
+                Tarefa tarefa = _tarefaRepository.ObterPorId(request.Id.Value);
 
-                ValidarExistenciaTarefa(tarefa);
+                _validacaoTarefaService.ValidarExistenciaTarefa(tarefa);
 
-                tarefa.Descricao = tarefaDto.Descricao;
-                tarefa.Finalizada = tarefaDto.Finalizada;
+                tarefa.Descricao = request.Descricao;
+                tarefa.Finalizada = request.Finalizada;
 
                 _tarefaRepository.Update(tarefa);
             }
@@ -45,9 +47,9 @@ namespace MyTODOList.ServicesImpl.Services
 
         public void Finalizar(int[] ids)
         {
-            var tarefas = _tarefaRepository.ConsultarPorIds(ids);
+            IList<Tarefa> tarefas = _tarefaRepository.ConsultarPorIds(ids);
 
-            foreach (var tarefa in tarefas)
+            foreach (Tarefa tarefa in tarefas)
             {
                 tarefa.Finalizada = true;
                 _tarefaRepository.Update(tarefa);
@@ -58,9 +60,9 @@ namespace MyTODOList.ServicesImpl.Services
 
         public void Excluir(int id)
         {
-            var tarefa = _tarefaRepository.ObterPorId(id);
-            
-            ValidarExistenciaTarefa(tarefa);
+            Tarefa tarefa = _tarefaRepository.ObterPorId(id);
+
+            _validacaoTarefaService.ValidarExistenciaTarefa(tarefa);
 
             _tarefaRepository.Delete(tarefa);
             _tarefaRepository.SaveChanges();
@@ -73,19 +75,11 @@ namespace MyTODOList.ServicesImpl.Services
 
         public Tarefa ObterPorId(int id)
         {
-            var tarefa = _tarefaRepository.ObterPorId(id);
+            Tarefa tarefa = _tarefaRepository.ObterPorId(id);
 
-            ValidarExistenciaTarefa(tarefa);
+            _validacaoTarefaService.ValidarExistenciaTarefa(tarefa);
 
             return tarefa;
-        }
-
-        private void ValidarExistenciaTarefa(Tarefa tarefa)
-        {
-            if (tarefa is null)
-            {
-                throw new NotFoundException("Tarefa não encontrada!");
-            }
-        }        
+        }               
     }
 }
